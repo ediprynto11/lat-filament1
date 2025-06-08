@@ -1,0 +1,11 @@
+/* Pindahkan semua dropdown di footer tabel Filament ke kanan */
+.fi-ta-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Pindahkan per page selector ke kanan */
+.fi-ta-footer [name="tableRecordsPerPage"] {
+    margin-left: auto;
+    display: block;
+}

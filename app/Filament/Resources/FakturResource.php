@@ -33,24 +33,24 @@ class FakturResource extends Resource
                 DatePicker::make('tanggal_faktur'),
                 TextInput::make('kode_customer'),
                 Select::make('customer_id')
-                ->required()
-                ->relationship('customer', 'nama'),
+                    ->required()
+                    ->relationship('customer', 'nama'),
                 Repeater::make('detail')
                     ->relationship()
                     ->schema([
                         Select::make('barang_id')
-                        ->relationship('barang', 'nama'),
+                            ->relationship('barang', 'nama'),
                         TextInput::make('diskon')
-                        ->numeric(),
+                            ->numeric(),
                         TextInput::make('harga')
-                        ->numeric(),
+                            ->numeric(),
                         TextInput::make('nama_barang'),
                         TextInput::make('subtotal')
-                        ->numeric(),
+                            ->numeric(),
                         TextInput::make('qty')
-                        ->numeric(),
+                            ->numeric(),
                         TextInput::make('hasil_qty')
-                        ->numeric(),
+                            ->numeric(),
                     ]),
                 TextInput::make('keterangan'),
                 TextInput::make('total'),
@@ -64,10 +64,13 @@ class FakturResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('kode_faktur'),
+                TextColumn::make('kode_faktur')
+                    ->searchable(),
                 TextColumn::make('tanggal_faktur'),
-                TextColumn::make('kode_customer'),
-                TextColumn::make('customer.nama'),
+                TextColumn::make('kode_customer')
+                    ->searchable(),
+                TextColumn::make('customer.nama')
+                    ->searchable(),
                 TextColumn::make('keterangan'),
                 TextColumn::make('total'),
                 TextColumn::make('nominal_charge'),

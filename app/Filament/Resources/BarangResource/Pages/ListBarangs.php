@@ -16,4 +16,9 @@ class ListBarangs extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    // protected function tableContentFooter(): ?\Illuminate\Contracts\View\View
+    // {
+    //     return view('filament.tables.custom-footer');
+    // }
 }
