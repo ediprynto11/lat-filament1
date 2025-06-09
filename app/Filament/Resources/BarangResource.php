@@ -37,12 +37,10 @@ class BarangResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('stok')
                     ->required()
-                    ->numeric()
-                    ->default(0),
+                    ->numeric(),
                 Forms\Components\TextInput::make('harga')
                     ->required()
-                    ->numeric()
-                    ->default(0.00),
+                    ->numeric(),
             ]);
     }
 

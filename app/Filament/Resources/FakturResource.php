@@ -13,6 +13,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\FakturResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -29,34 +30,107 @@ class FakturResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('kode_faktur'),
-                DatePicker::make('tanggal_faktur'),
-                TextInput::make('kode_customer'),
+                TextInput::make('kode_faktur')
+                    ->columnSpan(2),
+                DatePicker::make('tanggal_faktur')
+                    ->columnSpan([
+                        'default' => 2,
+                        'md' => 1,
+                        'lg' => 1,
+                        'xl' => 1,
+                    ]),
                 Select::make('customer_id')
                     ->required()
-                    ->relationship('customer', 'nama'),
+                    ->relationship('customer', 'nama')
+                    ->columnSpan([
+                        'default' => 2,
+                        'md' => 1,
+                        'lg' => 1,
+                        'xl' => 1,
+                    ]),
+                TextInput::make('kode_customer')
+                    ->columnSpan(2),
                 Repeater::make('detail')
                     ->relationship()
                     ->schema([
                         Select::make('barang_id')
-                            ->relationship('barang', 'nama'),
-                        TextInput::make('diskon')
-                            ->numeric(),
+                            ->relationship('barang', 'nama')
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1,
+                                'lg' => 1,
+                                'xl' => 1,
+                            ]),
+                        TextInput::make('nama_barang')
+                            ->columnSpan(2)
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1,
+                                'lg' => 1,
+                                'xl' => 1,
+                            ]),
                         TextInput::make('harga')
-                            ->numeric(),
-                        TextInput::make('nama_barang'),
-                        TextInput::make('subtotal')
-                            ->numeric(),
+                            ->numeric()
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1,
+                                'lg' => 1,
+                                'xl' => 1,
+                            ]),
                         TextInput::make('qty')
-                            ->numeric(),
+                            ->numeric()
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1,
+                                'lg' => 1,
+                                'xl' => 1,
+                            ]),
                         TextInput::make('hasil_qty')
-                            ->numeric(),
+                            ->numeric()
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1,
+                                'lg' => 1,
+                                'xl' => 1,
+                            ]),
+                        TextInput::make('diskon')
+                            ->numeric()
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1,
+                                'lg' => 1,
+                                'xl' => 1,
+                            ]),
+                        TextInput::make('subtotal')
+                            ->numeric()
+                            ->columnSpan([
+                                'default' => 2,
+                                'md' => 1,
+                                'lg' => 1,
+                                'xl' => 1,
+                            ]),
+                    ])
+                    ->columnSpan(2),
+                Textarea::make('keterangan')
+                    ->columnSpan(2),
+                TextInput::make('total')
+                    ->columnSpan([
+                        'default' => 2,
+                        'md' => 1,
+                        'lg' => 1,
+                        'xl' => 1,
                     ]),
-                TextInput::make('keterangan'),
-                TextInput::make('total'),
-                TextInput::make('nominal_charge'),
-                TextInput::make('charge'),
-                TextInput::make('total_final'),
+                TextInput::make('nominal_charge')
+                     ->columnSpan([
+                        'default' => 2,
+                        'md' => 1,
+                        'lg' => 1,
+                        'xl' => 1,
+                    ]),
+                TextInput::make('charge')
+                   ->columnSpan(2),
+                TextInput::make('total_final')
+                    ->columnSpan(2),
             ]);
     }
 
