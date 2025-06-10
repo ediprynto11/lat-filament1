@@ -21,7 +21,9 @@ class CustomerResource extends Resource
 
     protected static ?string $slug = 'kelola-customer';
 
-    protected static ?string $navigationLabel = 'Kelola Customer';
+    protected static ?string $navigationGroup = 'Kelola';
+
+    protected static ?string $navigationLabel = 'Customer';
 
     public static function form(Form $form): Form
     {
@@ -70,6 +72,9 @@ class CustomerResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->emptyStateHeading('Tidak ada data customer')
+             ->emptyStateDescription('Silahkan tambahkan customer terlebih dahulu')
+             ->emptyStateIcon('heroicon-o-users')
             ->filters([
                 //
             ])
