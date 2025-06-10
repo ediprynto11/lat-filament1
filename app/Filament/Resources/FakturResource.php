@@ -4,27 +4,36 @@ namespace App\Filament\Resources;
 
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\Barang;
 use App\Models\Faktur;
+use Filament\Forms\Get;
+use App\Models\Customer;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Textarea;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\FakturResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\FakturResource\RelationManagers;
 use Illuminate\Database\Eloquent\Factories\Relationship;
+use App\Filament\Resources\FakturResource\RelationManagers;
+use NunoMaduro\Collision\Adapters\Phpunit\State;
 
 class FakturResource extends Resource
 {
     protected static ?string $model = Faktur::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $slug = 'faktur';
+
+    protected static ?string $navigationGroup = 'Kelola';
+
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     public static function form(Form $form): Form
     {
@@ -40,6 +49,7 @@ class FakturResource extends Resource
                         'xl' => 1,
                     ]),
                 Select::make('customer_id')
+                    ->reactive()
                     ->required()
                     ->relationship('customer', 'nama')
                     ->columnSpan([
@@ -47,20 +57,42 @@ class FakturResource extends Resource
                         'md' => 1,
                         'lg' => 1,
                         'xl' => 1,
-                    ]),
+                    ])
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $customer = Customer::find($state);
+                        if ($customer) {
+                            $set('kode_customer', $customer->kode);
+                        }
+                    })
+                    ->afterStateHydrated(function ($state, callable $set) {
+                        $customer = Customer::find($state);
+                        if ($customer) {
+                            $set('kode_customer', $customer->kode);
+                        }
+                    }),
                 TextInput::make('kode_customer')
+                    ->disabled()
+                    ->dehydrated()
                     ->columnSpan(2),
                 Repeater::make('detail')
                     ->relationship()
                     ->schema([
                         Select::make('barang_id')
-                            ->relationship('barang', 'nama')
                             ->columnSpan([
                                 'default' => 2,
                                 'md' => 1,
                                 'lg' => 1,
                                 'xl' => 1,
-                            ]),
+                            ])
+                            ->reactive()
+                            ->relationship('barang', 'nama')
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $barang = Barang::find($state);
+                                if ($barang) {
+                                    $set('harga', $barang->harga);
+                                    $set('nama_barang', $barang->nama);
+                                }
+                            }),
                         TextInput::make('nama_barang')
                             ->columnSpan(2)
                             ->columnSpan([
@@ -70,7 +102,7 @@ class FakturResource extends Resource
                                 'xl' => 1,
                             ]),
                         TextInput::make('harga')
-                            ->numeric()
+                            ->prefix('Rp')
                             ->columnSpan([
                                 'default' => 2,
                                 'md' => 1,
@@ -84,9 +116,15 @@ class FakturResource extends Resource
                                 'md' => 1,
                                 'lg' => 1,
                                 'xl' => 1,
-                            ]),
+                            ])
+                            ->reactive()
+                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                $tampungHarga = $get('harga');
+                                $set('hasil_qty', intval($state * $tampungHarga));
+                            }),
                         TextInput::make('hasil_qty')
                             ->numeric()
+                            ->prefix('Rp')
                             ->columnSpan([
                                 'default' => 2,
                                 'md' => 1,
@@ -94,6 +132,14 @@ class FakturResource extends Resource
                                 'xl' => 1,
                             ]),
                         TextInput::make('diskon')
+                            ->reactive()
+                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                $hasilQty = $get('hasil_qty');
+                                $diskon = $hasilQty * ($state / 100);
+                                $hasil = $hasilQty - $diskon;
+
+                                $set('subtotal', $hasil);
+                            })
                             ->numeric()
                             ->columnSpan([
                                 'default' => 2,
@@ -103,6 +149,7 @@ class FakturResource extends Resource
                             ]),
                         TextInput::make('subtotal')
                             ->numeric()
+                            ->prefix('Rp')
                             ->columnSpan([
                                 'default' => 2,
                                 'md' => 1,
@@ -110,10 +157,20 @@ class FakturResource extends Resource
                                 'xl' => 1,
                             ]),
                     ])
+                    ->live()
                     ->columnSpan(2),
                 Textarea::make('keterangan')
                     ->columnSpan(2),
                 TextInput::make('total')
+                    ->prefix('Rp')
+                    ->placeholder(function (Set $set, Get $get) {
+                        $detail = collect($get('detail',))->pluck('subtotal')->sum();
+                        if ($detail == null) {
+                            $set('total', 0);
+                        } else {
+                            $set('total', $detail);
+                        }
+                    })
                     ->columnSpan([
                         'default' => 2,
                         'md' => 1,
@@ -121,16 +178,29 @@ class FakturResource extends Resource
                         'xl' => 1,
                     ]),
                 TextInput::make('nominal_charge')
-                     ->columnSpan([
+                    ->columnSpan([
                         'default' => 2,
                         'md' => 1,
                         'lg' => 1,
                         'xl' => 1,
-                    ]),
+                    ])
+                    ->reactive()
+                    ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                        $total = $get('total');
+                        $charge = $total * ($state / 100);
+                        $hasil = $total + $charge;
+
+                        $set('total_final', $hasil);
+                        $set('charge', $charge);
+                    }),
                 TextInput::make('charge')
-                   ->columnSpan(2),
-                TextInput::make('total_final')
-                    ->columnSpan(2),
+                    ->disabled()
+                    ->dehydrated()
+                    ->columnSpan(2)
+                    ->prefix('Rp'),
+                   TextInput::make('total_final')
+                    ->columnSpan(2)
+                    ->prefix('Rp'),
             ]);
     }
 
@@ -146,11 +216,17 @@ class FakturResource extends Resource
                 TextColumn::make('customer.nama')
                     ->searchable(),
                 TextColumn::make('keterangan'),
-                TextColumn::make('total'),
+                TextColumn::make('total')
+                    ->formatStateUsing(fn(Faktur $record): string => 'Rp ' . number_format($record->total, 0, '.', '.')),
                 TextColumn::make('nominal_charge'),
-                TextColumn::make('charge'),
-                TextColumn::make('total_final'),
+                TextColumn::make('charge')
+                    ->formatStateUsing(fn(Faktur $record): string => 'Rp ' . number_format($record->charge, 0, '.', '.')),
+                TextColumn::make('total_final')
+                    ->formatStateUsing(fn(Faktur $record): string => 'Rp ' . number_format($record->total_final, 0, '.', '.')),
             ])
+             ->emptyStateHeading('Tidak ada data faktur')
+             ->emptyStateDescription('Silahkan buat faktur terlebih dahulu')
+             ->emptyStateIcon('heroicon-o-clipboard-document-list')
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])

@@ -21,7 +21,9 @@ class BarangResource extends Resource
 
     protected static ?string $slug = 'kelola-barang';
 
-    protected static ?string $navigationLabel = 'Kelola Barang';
+    protected static ?string $navigationGroup = 'Kelola';
+
+    protected static ?string $navigationLabel = 'Barang';
 
     public static function form(Form $form): Form
     {
@@ -40,6 +42,7 @@ class BarangResource extends Resource
                     ->numeric(),
                 Forms\Components\TextInput::make('harga')
                     ->required()
+                    ->prefix('Rp')
                     ->numeric(),
             ]);
     }
@@ -54,10 +57,12 @@ class BarangResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('stok')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->formatStateUsing(fn(Barang $record): string =>number_format($record->stok, 0, '.', '.')),
                 Tables\Columns\TextColumn::make('harga')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->formatStateUsing(fn(Barang $record): string => 'Rp ' . number_format($record->harga, 0, '.', '.')),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -67,6 +72,9 @@ class BarangResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+             ->emptyStateHeading('Tidak ada data barang')
+             ->emptyStateDescription('Silahkan tambahkan barang terlebih dahulu')
+             ->emptyStateIcon('heroicon-o-cube')
             ->filters([
                 //
             ])
