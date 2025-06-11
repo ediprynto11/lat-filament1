@@ -37,9 +37,21 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                // Widgets\AccountWidget::class,
+                // Widgets\FilamentInfoWidget::class,
             ])
+            ->colors([
+            'danger' => Color::Rose,
+            'gray' => Color::Gray,
+            'info' => Color::Blue,
+            'primary' => Color::Green,
+            'success' => Color::Emerald,
+            'warning' => Color::Orange,
+        ])
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->font('Poppins')
+            ->spa()
+            ->sidebarCollapsibleOnDesktop()
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
