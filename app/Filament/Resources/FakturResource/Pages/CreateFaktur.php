@@ -6,6 +6,7 @@ use App\Filament\Resources\FakturResource;
 use App\Models\penjualan;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Notifications\Notification;
 
 class CreateFaktur extends CreateRecord
 {
@@ -22,6 +23,15 @@ class CreateFaktur extends CreateRecord
             'keterangan' => $this->record->keterangan,
             'status' => 0,
         ]);
+    }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil dibuat')
+            ->body('Faktur telah berhasil dibuat.')
+            ->icon('heroicon-o-clipboard-document-list');
     }
 }
 
