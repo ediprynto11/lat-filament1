@@ -10,8 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Notifications\Notification;
 
 class BarangResource extends Resource
 {
@@ -33,8 +32,25 @@ class BarangResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('kode')
-                ->required()
-                    ->maxLength(255),
+                    ->required()
+                    ->maxLength(255)
+                    ->live()
+                    ->unique(ignoreRecord: true)
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state !== null && preg_match('/[a-z]/', $state)) {
+                            Notification::make()
+                                ->title('Huruf kecil akan diubah menjadi huruf besar.')
+                                ->warning()
+                                ->send();
+
+                            $set('kode', strtoupper($state));
+                        }
+                    })
+                    ->rules(['regex:/^[A-Z0-9]*$/'])
+                    ->validationMessages([
+                        'regex' => 'Kolom kode hanya boleh berisi huruf besar dan angka.',
+                        'unique' => 'Kode barang sudah digunakan, silakan masukkan kode lain.',
+                    ]),
                 Forms\Components\Textarea::make('deskripsi')
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('stok')
@@ -51,6 +67,11 @@ class BarangResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('no')
+                    ->label('No')
+                    ->state(function ($record, $livewire) {
+                        return ($livewire->getTableRecords()->firstItem() ?? 0) + $livewire->getTableRecords()->search(fn($item) => $item->id === $record->id);
+                    }),
                 Tables\Columns\TextColumn::make('nama')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('kode')
@@ -58,7 +79,7 @@ class BarangResource extends Resource
                 Tables\Columns\TextColumn::make('stok')
                     ->numeric()
                     ->sortable()
-                    ->formatStateUsing(fn(Barang $record): string =>number_format($record->stok, 0, '.', '.')),
+                    ->formatStateUsing(fn(Barang $record): string => number_format($record->stok, 0, '.', '.')),
                 Tables\Columns\TextColumn::make('harga')
                     ->numeric()
                     ->sortable()
@@ -72,15 +93,15 @@ class BarangResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-             ->emptyStateHeading('Tidak ada data barang')
-             ->emptyStateDescription('Silahkan tambahkan barang terlebih dahulu')
-             ->emptyStateIcon('heroicon-o-cube')
+            ->emptyStateHeading('Tidak ada data barang')
+            ->emptyStateDescription('Silahkan tambahkan barang terlebih dahulu')
+            ->emptyStateIcon('heroicon-o-cube')
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

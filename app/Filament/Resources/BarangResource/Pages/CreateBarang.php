@@ -16,7 +16,7 @@ class CreateBarang extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil dibuat')
-            ->icon('heroicon-o-document-text')
+            ->icon('heroicon-o-cube')
             ->body('Data barang telah berhasil dibuat.');
     }
 }

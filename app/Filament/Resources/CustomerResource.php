@@ -10,8 +10,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Notifications\Notification;
+
 
 class CustomerResource extends Resource
 {
@@ -33,8 +33,26 @@ class CustomerResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('kode')
+                    ->maxLength(255)
                     ->required()
-                    ->maxLength(255),
+                    ->unique(ignoreRecord: true)
+                    ->live()
+                    ->unique(ignoreRecord: true)
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state !== null && preg_match('/[a-z]/', $state)) {
+                            Notification::make()
+                                ->title('Huruf kecil akan diubah menjadi huruf besar.')
+                                ->warning()
+                                ->send();
+
+                            $set('kode', strtoupper($state));
+                        }
+                    })
+                    ->rules(['regex:/^[A-Z0-9]*$/'])
+                    ->validationMessages([
+                        'regex' => 'Kolom kode hanya boleh berisi huruf besar dan angka.',
+                        'unique' => 'Kode barang sudah digunakan, silakan masukkan kode lain.',
+                    ]),
                 Forms\Components\Textarea::make('alamat')
                     ->required()
                     ->columnSpanFull(),
@@ -42,7 +60,10 @@ class CustomerResource extends Resource
                     ->required()
                     ->email()
                     ->maxLength(255)
-                    ->unique(Customer::class, 'email', fn ($record) => $record),
+                    ->unique(ignoreRecord: true)
+                    ->validationMessages([
+                        'unique' => 'Email sudah digunakan, silakan gunakan email lain.',
+                    ]),
                 Forms\Components\TextInput::make('telepon')
                     ->required()
                     ->maxLength(20)
@@ -55,6 +76,11 @@ class CustomerResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('no')
+                    ->label('No')
+                    ->state(function ($record, $livewire) {
+                        return ($livewire->getTableRecords()->firstItem() ?? 0) + $livewire->getTableRecords()->search(fn($item) => $item->id === $record->id);
+                    }),
                 Tables\Columns\TextColumn::make('nama')
                     ->searchable()
                     ->sortable(),
@@ -73,8 +99,8 @@ class CustomerResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->emptyStateHeading('Tidak ada data customer')
-             ->emptyStateDescription('Silahkan tambahkan customer terlebih dahulu')
-             ->emptyStateIcon('heroicon-o-users')
+            ->emptyStateDescription('Silahkan tambahkan customer terlebih dahulu')
+            ->emptyStateIcon('heroicon-o-users')
             ->filters([
                 //
             ])
