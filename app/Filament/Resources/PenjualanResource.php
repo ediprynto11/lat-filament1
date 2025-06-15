@@ -40,6 +40,11 @@ class PenjualanResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('no')
+                    ->label('No')
+                    ->state(function ($record, $livewire) {
+                        return ($livewire->getTableRecords()->firstItem() ?? 0) + $livewire->getTableRecords()->search(fn($item) => $item->id === $record->id);
+                    }),
                 TextColumn::make('tanggal')
                     ->label('Tanggal')
                     ->sortable()
@@ -84,7 +89,7 @@ class PenjualanResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

@@ -46,7 +46,7 @@ class LoginCustom extends Login
     protected function throwFailureValidationException(): never
     {
         throw ValidationException::withMessages([
-            'data.login' => __('filament-panels::pages/auth/login.messages.failed'),
+            'data.login' => 'Email atau nama pengguna dan password tidak cocok.',
         ]);
     }
 }
